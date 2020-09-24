@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <cctype>
 
 using namespace std;
 
@@ -62,7 +63,7 @@ Command parse_command(const char *command)
     Command result(type, line_num, args_num);
     if (result.type == REPLACE)
     {
-        result.args[0] = args;
+        result.args[0] = args.substr(1);
     }
 
     return result;
@@ -93,7 +94,40 @@ int main(int argc, char *argv[])
     for (int idx = 2; idx < argc; ++idx)
     {
         Command command = parse_command(argv[idx]);
-        cout << command.type << endl;
+        int line_num = command.number;
+        // TODO: check command.number
+
+        switch (command.type)
+        {
+            case TO_UPPER:
+                for (long unsigned i = 0; i < fields[line_num].length(); ++i)
+                {
+                    fields[line_num][i] = toupper(fields[line_num][i]);
+                }
+                break;
+            case TO_LOWER:
+                for (long unsigned i = 0; i < fields[line_num].length(); ++i)
+                {
+                    fields[line_num][i] = tolower(fields[line_num][i]);
+                }
+                break;
+            case REPLACE:
+                cout << command.args[0] << endl;
+                for (long unsigned i = 0; i < fields[line_num].length(); ++i)
+                {
+                    if (fields[line_num][i] == command.args[0][0])
+                    {
+                        fields[line_num][i] = command.args[0][1];
+                    }
+                }
+                break;
+            default:
+                cerr << "Command type is not recognized" << endl;
+        }
+
+        if (command.type != UNKNOWN) {
+            cout << fields[command.number] << endl;
+        }
     }
 
     // Opening file, flushing values into it, closing file
@@ -108,10 +142,6 @@ int main(int argc, char *argv[])
     } else
     {
         cerr << "Error writing file" << endl;
-    }
-
-    for (const auto &val : fields) {
-        cout << val << endl;
     }
     
     return 0;
